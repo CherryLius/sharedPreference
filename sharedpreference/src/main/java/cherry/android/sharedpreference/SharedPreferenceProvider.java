@@ -6,15 +6,23 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Map;
 import java.util.Set;
 
+import static cherry.android.sharedpreference.Utils.checkNotNull;
+
 public abstract class SharedPreferenceProvider extends ContentProvider {
+
+    private static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.sharedPreference";
+    private static final int PREFERENCE = 0;
+    private final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     private ContentResolver mResolver;
     private SharedPreferences mPreference;
@@ -30,11 +38,11 @@ public abstract class SharedPreferenceProvider extends ContentProvider {
     public abstract String getAuthority();
 
     public SharedPreferenceProvider() {
-        this.mPreferenceName = getSharedPreferenceName();
-        checkNotNull(this.mPreferenceName);
-        this.mAuthority = getAuthority();
-        checkNotNull(this.mAuthority);
-        this.mContentUri = Uri.parse("content://" + this.mAuthority + "/SharedPreferenceProvider");
+        this.mPreferenceName = checkNotNull(getSharedPreferenceName());
+        this.mAuthority = checkNotNull(getAuthority());
+        mUriMatcher.addURI(this.mAuthority, "SharedPreferences", 0);
+        this.mContentUri = Uri.parse("content://" + this.mAuthority + "/SharedPreferences");
+
     }
 
     @Override
@@ -53,23 +61,48 @@ public abstract class SharedPreferenceProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return null;
+        final int type = mUriMatcher.match(uri);
+        if (type == PREFERENCE) {
+            return CONTENT_TYPE;
+        }
+        throw new IllegalArgumentException("Unknown Uri: " + uri);
     }
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         int size = values != null && values.size() > 0 ? values.size() : 0;
         if (size > 0) {
-            SharedPreferences.Editor edit = mPreference.edit();
+            SharedPreferences.Editor editor = mPreference.edit();
             for (String key : values.keySet()) {
-                putValueToPreference(edit, key, values.get(key));
+                putValueToPreference(editor, key, values.get(key));
             }
-            edit.apply();
+            editor.apply();
         }
         return uri;
     }
 
-    private void putValueToPreference(SharedPreferences.Editor edit, String key, Object value) {
+    @Override
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        Map<String, String> map = Utils.parseSelection(selection, selectionArgs);
+        if (map == null)
+            throw new IllegalArgumentException("SharedPreference delete must contains KEY");
+        if (map.size() == 0)
+            return -1;
+        SharedPreferences.Editor editor = mPreference.edit();
+        for (String value : map.values()) {
+            editor.remove(value);
+        }
+        editor.apply();
+        return map.size();
+    }
+
+    @Override
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        insert(uri, values);
+        return values.size();
+    }
+
+    private static void putValueToPreference(SharedPreferences.Editor edit, String key, Object value) {
         if (value == null) {
             edit.putString(key, null);
             return;
@@ -94,20 +127,5 @@ public abstract class SharedPreferenceProvider extends ContentProvider {
         } else {
             throw new UnsupportedOperationException("type not support! " + value.getClass());
         }
-    }
-
-    @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
-    }
-
-    @Override
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
-    }
-
-    private static <T> void checkNotNull(T t) {
-        if (t == null)
-            throw new NullPointerException("Null Unsupported.");
     }
 }

@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import cherry.android.sharedpreference.PreferenceLite;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     @Override
@@ -22,9 +24,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button:
-                ContentValues values = new ContentValues();
-                values.put("app_name", "SharedPreferenceSample");
-                getContentResolver().insert(Uri.parse("content://cherry.android/SharedPreference"), values);
+                PreferenceLite preference = new PreferenceLite(this, "cherry.android");
+                preference.put("current_user", "TomAndJerry");
+                preference.put("age", 20);
                 break;
             case R.id.button2:
                 startActivity(new Intent(this, SecondActivity.class));
