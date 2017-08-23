@@ -9,7 +9,11 @@ import android.content.SharedPreferences;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Process;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -100,6 +104,13 @@ public abstract class SharedPreferenceProvider extends ContentProvider {
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         insert(uri, values);
         return values.size();
+    }
+
+    @Nullable
+    @Override
+    public Bundle call(@NonNull String method, @Nullable String arg, @Nullable Bundle extras) {
+        Log.i("Test", "call + " + method + " + " + Process.myPid());
+        return super.call(method, arg, extras);
     }
 
     private static void putValueToPreference(SharedPreferences.Editor edit, String key, Object value) {

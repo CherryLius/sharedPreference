@@ -120,6 +120,9 @@ public class PreferenceLite implements Literate {
         });
     }
 
+    public void call() {
+        mContext.getContentResolver().call(mContentUri, "call", "tag", null);
+    }
 
     private static Cursor resolveCursor(@NonNull Context context, Uri uri, @NonNull String key) {
         return context.getContentResolver().query(uri, new String[]{key}, null, null, null);

@@ -1,8 +1,6 @@
 package cherry.android.sharedpreference.sample;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -23,14 +21,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.button:
+            case R.id.button: {
+
                 PreferenceLite preference = new PreferenceLite(this, "cherry.android");
                 preference.put("current_user", "TomAndJerry");
                 preference.put("age", 20);
                 break;
-            case R.id.button2:
+            }
+            case R.id.button2: {
+                PreferenceLite preferenceLite = new PreferenceLite(this, "cherry.android");
+                preferenceLite.call();
                 startActivity(new Intent(this, SecondActivity.class));
                 break;
+            }
+
 
         }
     }

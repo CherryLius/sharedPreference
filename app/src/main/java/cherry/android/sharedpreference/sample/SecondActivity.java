@@ -36,7 +36,7 @@ public class SecondActivity extends AppCompatActivity implements View.OnClickLis
                 preference.delete("app_name");
                 preference.put("flag", true);
                 Log.i("Test", "flag=" + preference.get("flag", false));
-
+                preference.call();
                 break;
             }
             case R.id.button4: {
